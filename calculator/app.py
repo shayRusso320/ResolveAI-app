@@ -1,6 +1,16 @@
 from flask import Flask, request, jsonify
+from werkzeug.exceptions import HTTPException
+import logging
 
 app = Flask(__name__)
+
+# Disable Flask's default logging
+log = logging.getLogger('werkzeug')
+log.setLevel(logging.CRITICAL)
+
+# Only log actual errors (exceptions)
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.ERROR)
 
 
 def add(a, b):
@@ -46,3 +56,14 @@ def multiply_route():
 def divide_route():
     data = request.json
     return jsonify({'result': divide(data['a'], data['b'])})
+
+
+@app.errorhandler(Exception)
+def handle_error(e):
+    # Don't log HTTP errors (4XX, 5XX from Flask)
+    if isinstance(e, HTTPException):
+        return jsonify({'error': str(e)}), e.code
+    
+    # Log actual code errors
+    logger.error(f"Error: {str(e)}")
+    return jsonify({'error': 'Internal server error'}), 500
