@@ -79,6 +79,8 @@ Set these in your GitHub Actions workflow or repository settings:
 | `AWS_REGION` | AWS region for ECR | `us-east-1` |
 | `ECR_REPOSITORY` | ECR repository name | `python-calculator-api` |
 | `IAM_ROLE_NAME` | IAM role name for OIDC | `github-actions-role` |
+| `ECS_CLUSTER` | ECS cluster name | `my-cluster` |
+| `ECS_SERVICE` | ECS service name | `calculator-api` |
 
 ### Required AWS Setup
 
