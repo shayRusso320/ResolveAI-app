@@ -24,16 +24,21 @@ jobs:
           aws-region: ${{ vars.AWS_REGION }}
       
       - name: Login to Amazon ECR
+        id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
       
       - name: Build and push image to Amazon ECR
         id: image
-        uses: aws-actions/amazon-ecr-build-push@v1
-        with:
-          repository: ${{ vars.ECR_REPOSITORY }}
-          tags: latest,${{ github.sha }}
-          context: .
-          dockerfile: ./Dockerfile
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REPOSITORY: ${{ vars.ECR_REPOSITORY }}
+          IMAGE_TAG: ${{ github.sha }}
+        run: |
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+          docker tag $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG $ECR_REGISTRY/$ECR_REPOSITORY:latest
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
+          echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
       
       - name: Deploy to ECS
         uses: aws-actions/ecs-deploy-task-definition@v1
