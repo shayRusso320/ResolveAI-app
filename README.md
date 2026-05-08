@@ -81,6 +81,7 @@ Set these in your GitHub Actions workflow or repository settings:
 | `IAM_ROLE_NAME` | IAM role name for OIDC | `github-actions-role` |
 | `ECS_CLUSTER` | ECS cluster name | `my-cluster` |
 | `ECS_SERVICE` | ECS service name | `calculator-api` |
+| `ECS_TASK_DEFINITION` | ECS task definition name | `calculator-api` |
 
 ### Required AWS Setup
 
@@ -154,6 +155,9 @@ aws ecr create-repository --repository-name python-calculator-api --region us-ea
 
 ## Deployment
 
-Push to main branch to trigger the GitHub Actions workflow, which will:
-1. Build the Docker image
-2. Push to Amazon ECR with commit SHA and `latest` tags
+The GitHub Actions workflow automatically:
+1. Builds the Docker image
+2. Pushes to Amazon ECR
+3. Deploys to ECS (non-blocking)
+
+Push to main branch to trigger the workflow.
