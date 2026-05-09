@@ -1,16 +1,26 @@
 from flask import Flask, request, jsonify
 from werkzeug.exceptions import HTTPException
 import logging
+import sys
+from pythonjsonlogger import jsonlogger
 
 app = Flask(__name__)
 
-# Disable Flask's default logging
-log = logging.getLogger('werkzeug')
-log.setLevel(logging.CRITICAL)
 
-# Only log actual errors (exceptions)
+# Set up structured JSON logging for our app only
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.ERROR)
+handler = logging.StreamHandler()
+formatter = jsonlogger.JsonFormatter('%(asctime)s %(levelname)s %(message)s')
+handler.setFormatter(formatter)
+logger.addHandler(handler)
+logger.setLevel(logging.INFO)
+logger.propagate = False
+
+# Handle uncaught exceptions through JSON logger
+def handle_uncaught(exc_type, exc_value, exc_traceback):
+    logger.error("Uncaught exception", exc_info=(exc_type, exc_value, exc_traceback))
+
+sys.excepthook = handle_uncaught
 
 
 def add(a, b):
@@ -57,13 +67,3 @@ def divide_route():
     data = request.json
     return jsonify({'result': divide(data['a'], data['b'])})
 
-
-@app.errorhandler(Exception)
-def handle_error(e):
-    # Don't log HTTP errors (4XX, 5XX from Flask)
-    if isinstance(e, HTTPException):
-        return jsonify({'error': str(e)}), e.code
-    
-    # Log actual code errors
-    logger.error(f"Error: {str(e)}")
-    return jsonify({'error': 'Internal server error'}), 500
